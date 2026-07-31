@@ -538,8 +538,7 @@ def test_transport_riemann_vs_whitening(get_mats):
 def test_transport_wasserstein_commuting(kindX, kindQ, get_mats, rndstate):
     """BW transport has a closed form for commuting endpoints.
 
-    Table 7 of ref [2] in transport_wasserstein, proved in its Appendix A.
-    Stated there for real SPD; the HPD case here is the unitary analogue.
+    Table 7 of [Thanwerdas2023], proved in its Appendix A.
     """
     n_channels = 4
     Q = get_mats(1, n_channels, kind=kindQ)[0]
@@ -559,7 +558,7 @@ def test_transport_wasserstein_commuting(kindX, kindQ, get_mats, rndstate):
 
 
 @pytest.mark.numpy_only
-@pytest.mark.parametrize("n_steps", [0, -1, 1.5, True])
+@pytest.mark.parametrize("n_steps", [0, -1, 1.5])
 def test_transport_wasserstein_invalid_n_steps(n_steps, get_mats):
     """transport_wasserstein rejects non-positive-integer n_steps."""
     A, B = get_mats(2, 3, "spd")

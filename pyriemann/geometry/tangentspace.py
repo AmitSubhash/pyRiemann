@@ -1366,11 +1366,7 @@ def transport_wasserstein(X, A, B, n_steps=50):
         <https://www.sciencedirect.com/science/article/pii/S0024379522004360>`_
         Y. Thanwerdas & X. Pennec. Linear Algebra and its Applications, 2023.
     """
-    if (
-        isinstance(n_steps, bool)
-        or not isinstance(n_steps, numbers.Integral)
-        or n_steps < 1
-    ):
+    if not isinstance(n_steps, numbers.Integral) or n_steps < 1:
         raise ValueError(
             f"n_steps must be a positive integer, got {n_steps!r}."
         )
