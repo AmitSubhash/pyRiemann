@@ -30,6 +30,10 @@ v0.13.dev
   transport with the Bures-Wasserstein metric.
   :pr:`476` by :user:`AmitSubhash`
 
+- Update ``array-api-compat`` from >=1.11 to >=1.14, and replace the deprecated
+  ``array_api_extra.expand_dims`` by the namespace-native ``expand_dims``.
+  :pr:`478` by :user:`AmitSubhash`
+
 v0.12 (July 2026)
 -----------------
 
