@@ -536,20 +536,25 @@ def test_transport_riemann_vs_whitening(get_mats):
 @pytest.mark.numpy_only
 @pytest.mark.parametrize("kindX, kindQ", [("sym", "orth"), ("herm", "unit")])
 def test_transport_wasserstein_commuting(kindX, kindQ, get_mats, rndstate):
-    """BW transport has a closed form for commuting endpoints."""
+    """BW transport has a closed form for commuting endpoints.
+
+    Table 7 of ref [2] in transport_wasserstein, proved in its Appendix A.
+    Stated there for real SPD; the HPD case here is the unitary analogue.
+    """
     n_channels = 4
     Q = get_mats(1, n_channels, kind=kindQ)[0]
+    Qh = Q.conj().T
     d = rndstate.uniform(0.5, 3, n_channels)
     delta = rndstate.uniform(0.5, 3, n_channels)
-    A = Q @ np.diag(d) @ Q.conj().T
-    B = Q @ np.diag(delta) @ Q.conj().T
+    A = Q @ np.diag(d) @ Qh
+    B = Q @ np.diag(delta) @ Qh
     X = get_mats(6, n_channels, kind=kindX)
 
     Xt = transport(X, A, B, metric="wasserstein")
 
-    Xr = Q.conj().T @ X @ Q
+    Xr = Qh @ X @ Q
     fac = np.sqrt(np.add.outer(delta, delta) / np.add.outer(d, d))
-    expected = Q @ (fac * Xr) @ Q.conj().T
+    expected = Q @ (fac * Xr) @ Qh
     assert Xt == approx(expected)
 
 
@@ -564,11 +569,12 @@ def test_transport_wasserstein_invalid_n_steps(n_steps, get_mats):
 
 
 @pytest.mark.numpy_only
-def test_transport_wasserstein_accepts_numpy_int(get_mats):
-    """n_steps accepts integer-like scalars such as NumPy integers."""
+@pytest.mark.parametrize("dtype", [np.int64, np.int32, np.uint8])
+def test_transport_wasserstein_accepts_numpy_int(dtype, get_mats):
+    """n_steps accepts NumPy integers of any width, not just np.int64."""
     A, B = get_mats(2, 3, "spd")
     X = get_mats(1, 3, "sym")[0]
-    out_np = transport_wasserstein(X, A, B, n_steps=np.int64(20))
+    out_np = transport_wasserstein(X, A, B, n_steps=dtype(20))
     out_py = transport_wasserstein(X, A, B, n_steps=20)
     assert out_np == approx(out_py)
 

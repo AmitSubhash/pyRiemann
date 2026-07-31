@@ -1,7 +1,7 @@
 """Tangent space for SPD/HPD matrices."""
 
 import math
-import operator
+import numbers
 
 from array_api_compat import (
     array_namespace as get_namespace,
@@ -1312,7 +1312,7 @@ def transport_riemann(X, A, B):
     return X_new
 
 
-def transport_wasserstein(X, A, B, n_steps=100):
+def transport_wasserstein(X, A, B, n_steps=50):
     r"""Parallel transport for Wasserstein metric.
 
     The parallel transport of matrices :math:`\mathbf{X}` in tangent space
@@ -1320,11 +1320,10 @@ def transport_wasserstein(X, A, B, n_steps=100):
     matrix :math:`\mathbf{B}` according to the Levi-Civita connection of the
     Bures-Wasserstein metric, described in Section 7.5 of [1]_.
 
-    Contrary to the other metrics, Bures-Wasserstein parallel transport has no
-    closed form in the general case [1]_ [2]_: it is defined by a linear
-    ordinary differential equation along the Wasserstein geodesic, integrated
-    here with a fixed-step Runge-Kutta scheme of order 4. A closed form exists
-    only when :math:`\mathbf{A}` and :math:`\mathbf{B}` commute.
+    Bures-Wasserstein parallel transport is defined by a linear ordinary
+    differential equation along the Wasserstein geodesic [1]_, integrated here
+    with a fixed-step Runge-Kutta scheme of order 4. When :math:`\mathbf{A}`
+    and :math:`\mathbf{B}` commute, a closed form is available [2]_.
 
     Warning: this function must be applied to matrices :math:`\mathbf{X}`
     already projected in tangent space with a logarithmic map at
@@ -1338,10 +1337,11 @@ def transport_wasserstein(X, A, B, n_steps=100):
         Initial SPD/HPD matrix.
     B : ndarray, shape (n, n)
         Final SPD/HPD matrix.
-    n_steps : int, default=100
+    n_steps : int, default=50
         Number of Runge-Kutta steps used to integrate the transport equation.
-        Must be a positive integer; larger values increase accuracy at the
-        cost of computation.
+        Must be a positive integer. More steps are needed the further the
+        transport map between A and B is from identity, at a cost linear in
+        ``n_steps``.
 
     Returns
     -------
@@ -1366,15 +1366,14 @@ def transport_wasserstein(X, A, B, n_steps=100):
         <https://www.sciencedirect.com/science/article/pii/S0024379522004360>`_
         Y. Thanwerdas & X. Pennec. Linear Algebra and its Applications, 2023.
     """
-    try:
-        n_int = operator.index(n_steps)
-    except TypeError:
-        n_int = None
-    if isinstance(n_steps, bool) or n_int is None or n_int < 1:
+    if (
+        isinstance(n_steps, bool)
+        or not isinstance(n_steps, numbers.Integral)
+        or n_steps < 1
+    ):
         raise ValueError(
             f"n_steps must be a positive integer, got {n_steps!r}."
         )
-    n_steps = n_int
     xp = get_namespace(X, A, B)
     n = A.shape[-1]
     eye = xp.eye(n, dtype=A.dtype, device=xpd(A))
